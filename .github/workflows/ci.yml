@@ -14,10 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go-version: [ '1.21', '1.22', '1.23' ]
+        go-version: [ '1.24', '1.25' ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         exclude:
-          - go-version: '1.23'
+          - go-version: '1.25'
             os: windows-latest
 
     steps:
@@ -55,7 +55,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.25'
         cache: true
 
     - name: Install golangci-lint
@@ -73,7 +73,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.25'
         cache: true
 
     - name: Install govulncheck
@@ -99,7 +99,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.25'
         cache: true
 
     - name: Run benchmarks
