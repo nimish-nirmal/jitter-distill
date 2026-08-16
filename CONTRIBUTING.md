@@ -2,10 +2,6 @@
 
 Thank you for your interest in contributing! This document provides guidelines and instructions for contributing.
 
-## Code of Conduct
-
-Be respectful, inclusive, and constructive. We follow the [Contributor Covenant](https://www.contributor-covenant.org/).
-
 ## How to Contribute
 
 ### Reporting Bugs

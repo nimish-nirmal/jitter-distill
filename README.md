@@ -425,7 +425,7 @@ Pushing a `vX.Y.Z` tag triggers [GoReleaser](.goreleaser.yml), which:
 
 ## Contributing
 
-Contributions are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md). Be sure to run `make test` and `make lint` before opening a pull request. Please respect our [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md). Be sure to run `make test` and `make lint` before opening a pull request.
 
 ## License
 
