@@ -1,4 +1,4 @@
-.PHONY: help build test lint bench clean fmt examples install-tools
+.PHONY: help build test lint bench clean fmt examples install-tools coverage
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -26,6 +26,9 @@ fmt: ## Format code
 
 vet: ## Run go vet
 	go vet ./...
+
+coverage: ## Generate an HTML coverage report
+	go tool cover -html=coverage.out
 
 clean: ## Clean build artifacts
 	go clean ./...
