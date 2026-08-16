@@ -9,7 +9,7 @@ before:
 # Build configuration
 builds:
   - id: jitter-token
-    main: ./cmd/jitter-token
+    main: ./cmd/jitter-token/main.go
     binary: jitter-token
     env:
       - CGO_ENABLED=0
@@ -52,7 +52,7 @@ changelog:
       - '^docs:'
       - '^test:'
 
-# Homebrew tap configuration (valid schema key)
+# Homebrew tap configuration
 brews:
   - name: jitter-token
     repository:
