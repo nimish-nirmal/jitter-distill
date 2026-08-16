@@ -39,7 +39,7 @@ jobs:
       run: go build -v ./...
 
     # Run race detector on Linux & macOS (avoids Windows CGO compiler prerequisites)
-    - name: Run tests with Race Detector
+    - name: Run tests with Race Detector (Unix)
       if: runner.os != 'Windows'
       run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
@@ -71,14 +71,11 @@ jobs:
         go-version: '1.26'
         cache: true
 
-    - name: Install golangci-lint
+    - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.52.2
+        version: latest
         args: --timeout=5m
-
-    - name: Run golangci-lint
-      run: golangci-lint run --timeout=5m ./...
 
   security:
     name: Security Scan
