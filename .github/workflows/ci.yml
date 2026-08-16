@@ -8,25 +8,29 @@ on:
   schedule:
     - cron: '0 0 * * 0'  # Weekly Sunday builds
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   test:
-    name: Test on Go ${{ matrix.go-version }} / ${{ matrix.os }}
+    name: Test (${{ matrix.os }} / Go ${{ matrix.go-version }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        go-version: [ '1.25', '1.26' ]
+        go-version: [ '1.24', '1.25' ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        exclude:
-          - go-version: '1.26'
-            os: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+        check-latest: true
         cache: true
 
     - name: Verify dependencies
@@ -35,30 +39,40 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Run tests
-      run: go test -v -race -coverprofile=coverage.out ./...
+    # Run race detector on Linux & macOS (avoids Windows CGO compiler prerequisites)
+    - name: Run tests with Race Detector (Unix)
+      if: runner.os != 'Windows'
+      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Run tests (Windows)
+      if: runner.os == 'Windows'
+      run: go test -v ./...
 
     - name: Upload coverage to Codecov
+      if: runner.os == 'Ubuntu'
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage.out
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.26'
+        go-version: 'stable'
         cache: true
 
-    - name: Install golangci-lint
+    - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
         version: latest
@@ -68,21 +82,22 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.26'
+        go-version: 'stable'
         cache: true
 
-    - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+    - name: Run govulncheck
+      uses: golang/govulncheck-action@v1
+      with:
+        go-version-input: 'stable'
+        go-package: ./...
 
-    - name: Run vulnerability check
-      run: govulncheck ./...
-
-    - name: Build Trivy cache
+    - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
@@ -90,17 +105,25 @@ jobs:
         format: 'sarif'
         output: 'trivy-results.sarif'
 
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
   benchmark:
     name: Benchmark
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.26'
+        go-version: 'stable'
         cache: true
 
     - name: Run benchmarks
-      run: go test -bench=. -benchmem -benchtime=3s ./...
+      run: go test -bench=. -benchmem -benchtime=2s ./...
