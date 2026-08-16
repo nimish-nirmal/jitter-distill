@@ -8,12 +8,15 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   goreleaser:
+    name: Release Binaries & Assets
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository (with full history)
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -23,11 +26,13 @@ jobs:
         go-version: '1.26'
         cache: true
 
-    - name: Run tests
-      run: go test -v -race ./...
+    - name: Verify dependencies & run tests
+      run: |
+        go mod verify
+        go test -v -race ./...
 
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v5
+      uses: goreleaser/goreleaser-action@v6
       with:
         distribution: goreleaser
         version: latest
