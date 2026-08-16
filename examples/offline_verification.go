@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Offline Token Verification Example ===
-")
+	fmt.Println("=== Offline Token Verification Example ===")
 
 	// Step 1: Generate key pair
 	fmt.Println("1. Generating RSA-2048 key pair...")
@@ -25,8 +24,7 @@ func main() {
 	fmt.Println("   Keys saved")
 
 	// Step 2: Server generates and signs token
-	fmt.Println("
-2. Server: Generating token and signing...")
+	fmt.Println("\n2. Server: Generating token and signing...")
 	pool := jd.NewEntropyPool(jd.DefaultConfig())
 	defer pool.Close()
 
@@ -36,27 +34,21 @@ func main() {
 	fmt.Printf("   Signature: %x...", signed.Signature[:32])
 
 	// Step 3: Client verifies OFFLINE
-	fmt.Println("
-
-3. Client: Verifying offline with public key...")
+	fmt.Println("\n3. Client: Verifying offline with public key...")
 	clientPublicPEM, _ := os.ReadFile("client_public.pem")
 	valid := jd.VerifySignedToken(signed, clientPublicPEM)
-	fmt.Printf("   Verification: %v
-", valid)
+	fmt.Printf("   Verification: %v\n", valid)
 
 	// Step 4: Test tampering
-	fmt.Println("
-4. Testing tampering detection...")
+	fmt.Println("\n4. Testing tampering detection...")
 	tampered := &jd.SignedToken{
 		Token:     "fake",
 		Signature: signed.Signature,
 	}
 	valid2 := jd.VerifySignedToken(tampered, clientPublicPEM)
-	fmt.Printf("   Tampered: %v (should be false)
-", valid2)
+	fmt.Printf("   Tampered: %v (should be false)\n", valid2)
 
-	fmt.Println("
-=== Summary ===")
+	fmt.Println("\n=== Summary ===")
 	fmt.Println("Server: private.pem")
 	fmt.Println("Client: public.pem (no server needed!)")
 }

@@ -6,7 +6,7 @@ import (
 
 func BenchmarkGenerateToken256(b *testing.B) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -20,7 +20,7 @@ func BenchmarkGenerateToken256(b *testing.B) {
 func BenchmarkGenerateToken512(b *testing.B) {
 	cfg := DefaultConfig()
 	pool := NewEntropyPool(cfg)
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -41,7 +41,7 @@ func BenchmarkARPredictorUpdate(b *testing.B) {
 
 func BenchmarkHarvestJitter(b *testing.B) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 	buf := make([]float64, DefaultSampleCount)
 
 	b.ResetTimer()

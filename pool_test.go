@@ -43,12 +43,12 @@ func TestNewEntropyPool(t *testing.T) {
 	if pool == nil {
 		t.Fatal("expected non-nil pool")
 	}
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 }
 
 func TestEntropyPoolGenerateToken(t *testing.T) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 	token, err := pool.GenerateToken()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -60,7 +60,7 @@ func TestEntropyPoolGenerateToken(t *testing.T) {
 
 func TestEntropyPoolGenerateToken512(t *testing.T) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 	token, err := pool.GenerateTokenWithStrength(512)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -72,7 +72,7 @@ func TestEntropyPoolGenerateToken512(t *testing.T) {
 
 func TestEntropyPoolStats(t *testing.T) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 	_, _, _ = pool.Stats()
 }
 
@@ -122,7 +122,7 @@ func TestEntropyEstimation(t *testing.T) {
 
 func TestConcurrentTokenGeneration(t *testing.T) {
 	pool := NewEntropyPool(DefaultConfig())
-	defer pool.Close()
+	defer func() { _ = pool.Close() }()
 	const goroutines = 10
 	const perGoroutine = 5
 	errCh := make(chan error, goroutines*perGoroutine)

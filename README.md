@@ -1,6 +1,6 @@
 # Jitter Distill
 
-[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?logo=go&logoColor=white)](https://golang.org/dl/)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://golang.org/dl/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/nimish-nirmal/jitter-distill/ci.yml?branch=main)](https://github.com/nimish-nirmal/jitter-distill/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nimish-nirmal/jitter-distill)](https://goreportcard.com/report/github.com/nimish-nirmal/jitter-distill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -52,7 +52,7 @@ Because it binds entropy to real hardware behavior, it is resilient even when a 
 
 ## Installation
 
-Requires **Go 1.24+**.
+Requires **Go 1.25+**.
 
 ```bash
 go get github.com/nimish-nirmal/jitter-distill

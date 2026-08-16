@@ -22,30 +22,30 @@ import (
 )
 
 const (
-	DefaultSampleCount  = 512
-	DefaultAROrder      = 8
-	DefaultLearningRate = 0.0001
-	DefaultWorkerCount  = 4
+	DefaultSampleCount   = 512
+	DefaultAROrder       = 8
+	DefaultLearningRate  = 0.0001
+	DefaultWorkerCount   = 4
 	DefaultChannelBuffer = 1024
-	DefaultPoolSize     = 64
+	DefaultPoolSize      = 64
 )
 
 var ErrPoolShutdown = errors.New("entropy pool is shut down")
 
 type EntropyPool struct {
-	config         Config
-	arPredictor    *ARPredictor
-	sampleCh       chan []float64
-	wg             sync.WaitGroup
-	closed         int32
-	shutdownOnce   sync.Once
-	harvestDone    chan struct{}
-	workersActive  int32
-	bytesGenerated uint64
+	config          Config
+	arPredictor     *ARPredictor
+	sampleCh        chan []float64
+	wg              sync.WaitGroup
+	closed          int32
+	shutdownOnce    sync.Once
+	harvestDone     chan struct{}
+	workersActive   int32
+	bytesGenerated  uint64
 	tokensGenerated uint64
-	lastReseed     time.Time
-	reseedInterval time.Duration
-	mu             sync.RWMutex
+	lastReseed      time.Time
+	reseedInterval  time.Duration
+	mu              sync.RWMutex
 }
 
 type Config struct {
@@ -190,6 +190,7 @@ func (p *EntropyPool) startWorkers() {
 func (p *EntropyPool) harvestWorker() {
 	defer p.wg.Done()
 	defer atomic.AddInt32(&p.workersActive, -1)
+	// Per-worker scratch buffer, sized to the sample count.
 	buf := make([]float64, p.config.SampleCount)
 	for {
 		select {
@@ -197,8 +198,12 @@ func (p *EntropyPool) harvestWorker() {
 			return
 		default:
 			samples := p.harvestJitter(buf)
+			// Send a fresh copy so the receiver's slice is never
+			// reused/overwritten by this worker on the next cycle.
+			out := make([]float64, len(samples))
+			copy(out, samples)
 			select {
-			case p.sampleCh <- samples:
+			case p.sampleCh <- out:
 			case <-p.harvestDone:
 				return
 			}
@@ -221,7 +226,9 @@ func (p *EntropyPool) harvestJitter(buf []float64) []float64 {
 		then := time.Now().UnixNano()
 		delta := float64(then - now)
 		now = then
-		if math.IsNaN(delta) || math.IsInf(delta, 0) || delta < 0 {
+		// then and now are int64 UnixNano values, so delta is always a
+		// finite float64. Only guard against non-monotonic / backward clocks.
+		if delta < 0 {
 			delta = 0.0
 		}
 		buf[i] = delta
@@ -274,7 +281,11 @@ func (p *EntropyPool) GenerateTokenWithStrength(bits int) (string, error) {
 		select {
 		case samples := <-p.sampleCh:
 			for _, delta := range samples {
+				// Guard the AR predictor: it is shared mutable state
+				// mutated by concurrent GenerateToken* calls and Reseed.
+				p.mu.Lock()
 				residual := p.arPredictor.Update(delta)
+				p.mu.Unlock()
 				bitsVal := math.Float64bits(residual)
 				binary.LittleEndian.PutUint64(byteBuf, bitsVal)
 				residualBytes = append(residualBytes, byteBuf[:4]...)
@@ -323,8 +334,9 @@ func CompressToken(hexToken string) ([]byte, error) {
 	}
 	var buf bytes.Buffer
 	w := gzip.NewWriter(&buf)
+	// Close must run before reading buf.Bytes() so the gzip footer is written.
 	if _, err := w.Write([]byte(hexToken)); err != nil {
-		w.Close()
+		_ = w.Close()
 		return nil, fmt.Errorf("compress write: %w", err)
 	}
 	if err := w.Close(); err != nil {
@@ -341,7 +353,7 @@ func DecompressToken(compressed []byte) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("gzip reader: %w", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	var buf bytes.Buffer
 	if _, err := buf.ReadFrom(r); err != nil {
 		return "", fmt.Errorf("decompress read: %w", err)
