@@ -1,0 +1,56 @@
+# Build configuration
+builds:
+  - id: jitter-token
+    main: ./cmd/jitter-token
+    binary: jitter-token
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - '7'
+    flags:
+      - -trimpath
+      - -ldflags=-s -w -buildid=
+
+# Archive configuration
+archives:
+  - id: archive
+    builds:
+      - jitter-token
+    name_template: >
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+
+# Checksum configuration
+checksum:
+  name_template: 'checksums.txt'
+
+# Changelog configuration
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# Homebrew tap
+aurdeps:
+  - name: jitter-token
+    type: github
+    owner: nimish-nirmal
+    token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    branch: main
+    folder: Formula
+    install: |
+      bin.install "jitter-token"

@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  jitter-distill:
+    build: .
+    environment:
+      - TOKEN_COUNT=5
+      - TOKEN_BITS=256
+      - WORKER_COUNT=4
+    command: --count 5 --bits 256 --workers 4
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M

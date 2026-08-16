@@ -1,0 +1,14 @@
+.git
+.github
+*.md
+!README.md
+*.yml
+!go.mod
+!go.sum
+dist/
+docs/
+examples/
+*.test
+*.out
+coverage.html
+.DS_Store
