@@ -6,6 +6,7 @@ before:
   hooks:
     - go mod tidy
 
+# Build configuration
 builds:
   - id: jitter-token
     main: ./cmd/jitter-token
@@ -27,22 +28,23 @@ builds:
     ldflags:
       - -s -w -buildid=
 
+# Archive configuration
 archives:
   - id: archive
-    builds:
-      - jitter-token
-    format: tar.gz
+    formats: [ 'tar.gz' ]
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ 'zip' ]
 
+# Checksum configuration
 checksum:
   name_template: 'checksums.txt'
 
+# Changelog configuration
 changelog:
   sort: asc
   filters:
@@ -50,6 +52,7 @@ changelog:
       - '^docs:'
       - '^test:'
 
+# Homebrew tap configuration (valid schema key)
 brews:
   - name: jitter-token
     repository:
